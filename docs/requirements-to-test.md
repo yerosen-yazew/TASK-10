@@ -6,7 +6,8 @@ that implement it and the test file(s) that cover it. Every test file in
 the link from requirement → test can also be grepped directly.
 
 > ForgeRoom is a pure-frontend offline SPA — there are no backend tests and no
-> API tests. All coverage lives under `repo/frontend/unit_tests/`.
+> backend API tests. Coverage is split between `repo/frontend/unit_tests/` and
+> browser-level route journeys in `repo/frontend/e2e_tests/`.
 
 ---
 
@@ -25,9 +26,9 @@ the link from requirement → test can also be grepped directly.
 | R9  | Presence — avatar stack + cursor/name tags                                                    | `engine/presence-engine`, `stores/presence-store`, `components/workspace/PresenceAvatarStack`, `components/workspace/CursorOverlay`                                                                                                   | `engine/presence-engine.test.ts`, `stores/presence-store.test.ts`, `components/PresenceAvatarStack.test.ts`, `components/CursorOverlay.test.ts`                                                                      | "attach(roomId) populates cursors", "idle transition on activity timeout", "detach cleans state", "renders one cursor dot per remote member", "excludes self cursor by selfMemberId" |
 | R10 | Activity feed (recent room events with filter)                                                | `engine/activity-engine`, `services/activity-repository`, `stores/activity-store`, `components/workspace/ActivityFeedPanel`                                                                                                           | `engine/activity-engine.test.ts`, `services/activity-repository.test.ts`, `stores/activity-store.test.ts`, `components/ActivityFeedPanel.test.ts`                                                                      | "filter tab change calls setFilter+refresh", "newest-first listing", "clears interval on unmount"                                                                              |
 | R11 | Roles (Host, Reviewer, Participant, Guest) are **UI personas only**, not a security boundary | `models/room` (`RoomRole`), `layouts/AppLayout` (role chip), `pages/ProfileSelectPage` (disclosure), `components/StatusBadge`                                                                                                         | `models/room.test.ts`, `layouts/AppLayout.test.ts`, `pages/ProfileSelectPage.test.ts`, `components/StatusBadge.test.ts`                                                                                               | "role chip has UI-personas title", "ProfileSelectPage discloses personas-only", "StatusBadge renders role-agnostic labels"                                                     |
-| R12 | Local-only profile select + passphrase unlock (≥8 chars)                                      | `services/profile-service` (PBKDF2), `services/profile-repository`, `services/session-service`, `stores/session-store`, `validators/passphrase-validator`, `pages/ProfileSelectPage`, `router/guards`                                 | `services/profile-service.test.ts`, `services/profile-repository.test.ts`, `services/session-service.test.ts`, `stores/session-store.test.ts`, `validators/passphrase-validator.test.ts`, `pages/ProfileSelectPage.test.ts`, `router/guards.test.ts` | "rejects <8 char passphrase", "unlock success navigates", "wrong passphrase shows error", "no plaintext stored", "room-create / room-join / workspace-settings / workspace-backup require active session" |
-| R13 | 30-min inactivity lock, 8-hour forced sign-out                                                | `services/session-service`, `stores/session-store`, `router/guards`, `pages/ProfileSelectPage`, `App.vue` (activity tracking)                                                                                                         | `services/session-service.test.ts`, `stores/session-store.test.ts`, `router/guards.test.ts`, `pages/ProfileSelectPage.test.ts`                                                                                        | "surfaces inactivity-lock banner", "forced-sign-out after 8 h", "redirects to /profile when locked"                                                                           |
-| R14 | IndexedDB persistence boundary for room/workspace data                                         | `services/db-schema`, `services/base-repository`, all typed repositories in `services/*-repository.ts`                                                                                                                              | `services/base-repository.test.ts`, `services/room-repository.test.ts`, `services/member-repository.test.ts`, `services/element-repository.test.ts`, `services/comment-repository.test.ts`, `services/snapshot-repository.test.ts` | "creates stores/indexes and CRUD surface", "query helpers honor room-scoped indexes", "retention helpers trim bounded stores" |
+| R12 | Local-only profile select + passphrase unlock (≥8 chars)                                      | `services/profile-service` (PBKDF2), `services/profile-repository`, `services/session-service`, `stores/session-store`, `validators/passphrase-validator`, `pages/ProfileSelectPage`, `router/guards`                                 | `services/profile-service.test.ts`, `services/profile-repository.test.ts`, `services/session-service.test.ts`, `stores/session-store.test.ts`, `validators/passphrase-validator.test.ts`, `pages/ProfileSelectPage.test.ts`, `router/guards.test.ts`, `router/navigation.integration.test.ts` | "rejects <8 char passphrase", "unlock success navigates", "wrong passphrase shows error", "no plaintext stored", "guarded routes redirect when session is not active" |
+| R13 | 30-min inactivity lock, 8-hour forced sign-out                                                | `services/session-service`, `stores/session-store`, `router/guards`, `pages/ProfileSelectPage`, `App.vue` (activity tracking)                                                                                                         | `services/session-service.test.ts`, `stores/session-store.test.ts`, `router/guards.test.ts`, `router/navigation.integration.test.ts`, `pages/ProfileSelectPage.test.ts`                                                                                        | "surfaces inactivity-lock banner", "forced-sign-out after 8 h", "redirects to /profile when locked"                                                                           |
+| R14 | IndexedDB persistence boundary for room/workspace data                                         | `services/db-schema`, `services/base-repository`, all typed repositories in `services/*-repository.ts`                                                                                                                              | `services/db-schema.test.ts`, `services/base-repository.test.ts`, `services/room-repository.test.ts`, `services/member-repository.test.ts`, `services/element-repository.test.ts`, `services/comment-repository.test.ts`, `services/snapshot-repository.test.ts` | "creates stores/indexes and CRUD surface", "query helpers honor room-scoped indexes", "retention helpers trim bounded stores" |
 | R15 | LocalStorage for lightweight preferences and session flags                                     | `services/local-storage-keys`, `stores/preferences-store`, `stores/session-store`, `pages/WorkspaceSettingsPage`                                                                                                                   | `services/local-storage-keys.test.ts`, `stores/preferences-store.test.ts`, `stores/session-store.test.ts`, `pages/WorkspaceSettingsPage.test.ts`                                                                    | "theme/avatar/last-tool/recent-rooms persist", "session timers serialize lock/sign-out flags", "settings page writes preference updates" |
 | R16 | Auto-save every 10 s (`AUTOSAVE_INTERVAL_MS`)                                                 | `engine/autosave-scheduler`, `components/workspace/AutosaveIndicator`                                                                                                                                                                | `engine/autosave-scheduler.test.ts`, `components/AutosaveIndicator.test.ts`                                                                                                                                          | "invokes onAutoSave every 10 s", "multi-room isolation", "survives async rejection"                                                                                           |
 | R17 | Snapshots every 5 min, retain 48 (`MAX_SNAPSHOTS_RETAINED`), one-click rollback              | `engine/snapshot-engine`, `engine/autosave-scheduler` (snapshot cadence), `services/snapshot-repository`, `stores/snapshot-store`, `components/workspace/SnapshotDrawer`, `serializers/snapshot-serializer`                          | `engine/snapshot-engine.test.ts`, `engine/autosave-scheduler.test.ts`, `services/snapshot-repository.test.ts`, `stores/snapshot-store.test.ts`, `components/SnapshotDrawer.test.ts`, `serializers/snapshot-serializer.test.ts` | "trims above 48 retained", "rollback preserves history", "sorted by sequenceNumber", "snapshot-created and rollback notifications are distinct" |
@@ -43,8 +44,13 @@ the link from requirement → test can also be grepped directly.
 |---|---|
 | Router + route map (8 routes)                           | `router.test.ts`                             |
 | Router guards (locked / forced / unlocked)              | `router/guards.test.ts`                      |
+| Router navigation integration (all 8 paths, real guard) | `router/navigation.integration.test.ts`      |
 | BroadcastChannel multi-tab sync                         | `services/broadcast-channel-service.test.ts`, `services/broadcast-adaptor.test.ts` |
 | BaseRepository CRUD + query indexes (fake-indexeddb)    | `services/base-repository.test.ts`           |
+| IndexedDB schema bootstrap + store/index checks         | `services/db-schema.test.ts`                 |
+| Main bootstrap plugin order                             | `main.test.ts`                               |
+| Runtime model invariants                                | `models/constants.test.ts`, `models/profile.test.ts`, `models/activity.test.ts`, `models/validation.test.ts` |
+| Browser route journeys (Playwright, Docker profile)     | `e2e_tests/routes.e2e.spec.ts`               |
 | LocalStorage typed keys                                 | `services/local-storage-keys.test.ts`        |
 | UUID + pairing-code + verification-code generators      | `utils/id-generator.test.ts`                 |
 | Byte size estimator + human formatter                   | `utils/size-utils.test.ts`                   |
@@ -97,23 +103,18 @@ dedicated boundary tests (at-cap, one-over-cap, and cross-room isolation):
 
 ## How to run the tests
 
-Scripts live in `repo/frontend/package.json`. All tests run in Vitest (jsdom).
+Scripts live in `repo/frontend/package.json` and are executed through the
+Docker-first wrapper script:
 
 ```bash
-# Docker-first (matches CI):
-bash repo/run_tests.sh              # one-shot suite
-bash repo/run_tests.sh --coverage   # V8 coverage (>=90% lines/statements/functions, >=80% branches)
-
-# Local (requires npm install in repo/frontend first):
-npm test                    # run once
-npm run test:watch          # watch mode
-npm run test:coverage       # V8 coverage
+bash repo/run_tests.sh               # unit/integration suite
+bash repo/run_tests.sh --coverage    # unit/integration + V8 coverage
+bash repo/run_tests.sh --e2e         # Playwright browser journey suite
+bash repo/run_tests.sh --all         # coverage suite + Playwright suite
 ```
 
 Coverage thresholds are declared in `repo/frontend/vitest.config.ts` and enforced
-by the V8 provider. `src/models/**`, barrel `index.ts` files, `main.ts`, and
-`env.d.ts` are excluded because they are pure type/enum/entry files with no
-meaningful runtime branches.
+by the V8 provider. `src/**/index.ts` barrel files and `src/env.d.ts` are excluded.
 
 ---
 
@@ -139,9 +140,8 @@ The final static readiness audit verified the following without running anything
   README, `ProfileSelectPage`, and the role chip in `AppLayout`.
 - **Docker / README / config** — Vite dev port 5173; `docker-compose.yml` maps
   host 5173 → nginx container 80; `Dockerfile` exposes 80; `nginx.conf` listens
-  on 80; `run_tests.sh` uses `node:20-alpine`; `npm run test` / `test:watch` /
-  `test:coverage` match README and package.json exactly; no `.env` files; no
-  `VITE_*` identifiers in source.
+  on 80; `run_tests.sh` runs Dockerized unit/coverage/e2e modes; no `.env`
+  files; no `VITE_*` identifiers in source.
 - **Assumptions** — `docs/questions.md` retains the previously logged
   implementation-shaping assumptions (entries #1–#14) in ascending numeric
   order. No new entries were required by the audit.

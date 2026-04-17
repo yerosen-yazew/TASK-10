@@ -2,6 +2,7 @@
 # No backend services. Includes:
 # - frontend: production-like nginx-served SPA
 # - frontend-tests: on-demand Vitest runner (profile: test)
+# - frontend-e2e: Playwright browser journey runner (profile: e2e)
 
 services:
   frontend:
@@ -20,3 +21,16 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: sh -c "npm ci && npm run ${TEST_MODE:-test}"
+
+  frontend-e2e:
+    image: mcr.microsoft.com/playwright:v1.54.2-jammy
+    profiles: ["e2e"]
+    depends_on:
+      - frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://frontend
+    command: sh -c "npm ci && npm run test:e2e"

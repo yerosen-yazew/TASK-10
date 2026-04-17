@@ -14,6 +14,48 @@ class WidgetRepo extends BaseRepository<Widget, string> {
   protected readonly storeName = 'rooms' // reuse an existing store schema for the widget shape
 }
 
+class FailingWidgetRepo extends WidgetRepo {
+  constructor(private readonly failingDb: IDBDatabase) {
+    super()
+  }
+
+  protected override async getDb(): Promise<IDBDatabase> {
+    return this.failingDb
+  }
+}
+
+function makeErrorRequest<T>(message: string): IDBRequest<T> {
+  const request: Partial<IDBRequest<T>> = {
+    result: undefined,
+    error: new Error(message) as unknown as DOMException,
+    onsuccess: null,
+    onerror: null,
+  }
+  queueMicrotask(() => {
+    request.onerror?.(new Event('error'))
+  })
+  return request as IDBRequest<T>
+}
+
+function createFailingDb(message: string): IDBDatabase {
+  return {
+    transaction: () => ({
+      objectStore: () => ({
+        get: () => makeErrorRequest(message),
+        getAll: () => makeErrorRequest(message),
+        put: () => makeErrorRequest(message),
+        delete: () => makeErrorRequest(message),
+        clear: () => makeErrorRequest(message),
+        count: () => makeErrorRequest(message),
+        index: () => ({
+          getAll: () => makeErrorRequest(message),
+          count: () => makeErrorRequest(message),
+        }),
+      }),
+    }),
+  } as unknown as IDBDatabase
+}
+
 async function resetDb() {
   await new Promise<void>((resolve) => {
     const req = indexedDB.deleteDatabase(DB_NAME)
@@ -133,5 +175,23 @@ describe('BaseRepository (CRUD on rooms store)', () => {
     await repo.put({ ...base, name: 'second' })
     const got = (await repo.getById('same')) as any
     expect(got.name).toBe('second')
+  })
+
+  it('getById rejects when IndexedDB request fails', async () => {
+    const repo = new FailingWidgetRepo(createFailingDb('get failed'))
+
+    await expect(repo.getById('r1')).rejects.toThrow('get failed')
+  })
+
+  it('put rejects when IndexedDB request fails', async () => {
+    const repo = new FailingWidgetRepo(createFailingDb('put failed'))
+
+    await expect(repo.put({} as any)).rejects.toThrow('put failed')
+  })
+
+  it('query rejects when IndexedDB index request fails', async () => {
+    const repo = new FailingWidgetRepo(createFailingDb('query failed'))
+
+    await expect(repo.query('by-createdAt', '2026-01-01')).rejects.toThrow('query failed')
   })
 })

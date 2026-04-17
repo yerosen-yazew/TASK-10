@@ -104,6 +104,23 @@ describe('createProfile', () => {
     const profile = await createProfile('  Carol  ', '#22c55e', 'validpassword')
     expect(profile.displayName).toBe('Carol')
   })
+
+  it('generates unique salts and stores PBKDF2 iteration count', async () => {
+    const putMock = profileRepo.passphraseVerifierRepository.put as ReturnType<typeof vi.fn>
+    const callStart = putMock.mock.calls.length
+
+    await createProfile('Salt One', '#111111', 'Password123!')
+    await createProfile('Salt Two', '#222222', 'Password123!')
+    await createProfile('Salt Three', '#333333', 'Password123!')
+
+    const newVerifierRecords = putMock.mock.calls
+      .slice(callStart)
+      .map((call) => call[0] as PassphraseVerifier)
+
+    const salts = newVerifierRecords.map((record) => record.salt)
+    expect(new Set(salts).size).toBe(salts.length)
+    expect(newVerifierRecords.every((record) => record.iterations === 100_000)).toBe(true)
+  })
 })
 
 describe('verifyPassphrase', () => {
@@ -136,6 +153,26 @@ describe('verifyPassphrase', () => {
     ;(profileRepo.passphraseVerifierRepository.getById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined)
     const result = await verifyPassphrase('non-existent-id', 'anypassword')
     expect(result).toBe(false)
+  })
+
+  it('consistently returns false for repeated wrong-passphrase checks', async () => {
+    const profile = await createProfile('Repeat Wrong', '#8b5cf6', 'correct-password')
+
+    const verifierCall = (profileRepo.passphraseVerifierRepository.put as ReturnType<typeof vi.fn>).mock.calls[
+      (profileRepo.passphraseVerifierRepository.put as ReturnType<typeof vi.fn>).mock.calls.length - 1
+    ][0] as PassphraseVerifier
+
+    ;(profileRepo.passphraseVerifierRepository.getById as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => verifierCall
+    )
+
+    const first = await verifyPassphrase(profile.profileId, 'wrong-one')
+    const second = await verifyPassphrase(profile.profileId, 'wrong-one')
+    const third = await verifyPassphrase(profile.profileId, 'wrong-one')
+
+    expect(first).toBe(false)
+    expect(second).toBe(false)
+    expect(third).toBe(false)
   })
 })
 

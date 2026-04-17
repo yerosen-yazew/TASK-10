@@ -53,6 +53,19 @@ Each route targets a page component with defined store dependencies and expected
 | `/workspace/:roomId/settings` | `WorkspaceSettingsPage.vue` | `sessionStore`, `roomStore`, `preferencesStore` | Yes |
 | `/workspace/:roomId/backup` | `BackupPage.vue` | `sessionStore`, `roomStore`, `importExportStore` | Yes |
 
+### Route Observability and Coverage
+
+Route behavior is validated at two levels:
+
+- Unit/integration router coverage:
+  - `repo/frontend/unit_tests/router.test.ts` (route map and path/name resolution)
+  - `repo/frontend/unit_tests/router/guards.test.ts` (pure guard matrix)
+  - `repo/frontend/unit_tests/router/navigation.integration.test.ts` (real navigation + guard redirects for all 8 paths)
+- Browser route journey coverage:
+  - `repo/frontend/e2e_tests/routes.e2e.spec.ts` (Playwright, Docker profile `e2e`)
+
+Together, these suites verify both static route mapping and runtime navigation guard outcomes.
+
 ---
 
 ## 2. Storage Repository Interfaces
@@ -700,6 +713,7 @@ subscribeBroadcast<T>(type: BroadcastEventType, handler: (envelope: BroadcastEnv
 broadcastMessage<T>(type: BroadcastEventType, payload: T, roomId?: string): void
 closeBroadcastChannel(): void
 isBroadcastChannelOpen(): boolean
+getLocalTabId(): string
 ```
 
 ---

@@ -19,10 +19,8 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       include: ['src/**/*.{ts,vue}'],
       exclude: [
-        'src/main.ts',
         'src/env.d.ts',
         'src/**/index.ts',
-        'src/models/**',
       ],
       thresholds: {
         lines: 90,

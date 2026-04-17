@@ -7,6 +7,7 @@ import {
   broadcastMessage,
   closeBroadcastChannel,
   isBroadcastChannelOpen,
+  getLocalTabId,
 } from '@/services/broadcast-channel-service'
 import type { BroadcastEnvelope } from '@/models/broadcast'
 
@@ -22,12 +23,18 @@ describe('broadcast-channel-service', () => {
   it('initBroadcastChannel opens the channel', () => {
     initBroadcastChannel('tab-A')
     expect(isBroadcastChannelOpen()).toBe(true)
+    expect(getLocalTabId()).toBe('tab-A')
   })
 
   it('closeBroadcastChannel marks the channel closed and drops subscribers', () => {
     initBroadcastChannel('tab-A')
     closeBroadcastChannel()
     expect(isBroadcastChannelOpen()).toBe(false)
+    expect(getLocalTabId()).toBe('')
+  })
+
+  it('getLocalTabId is empty before initialization', () => {
+    expect(getLocalTabId()).toBe('')
   })
 
   it('delivers messages from one tab to another tab subscribed to the same type', async () => {
@@ -121,5 +128,34 @@ describe('broadcast-channel-service', () => {
   it('broadcastMessage is a no-op when the channel is not initialized', () => {
     // No init here
     expect(() => broadcastMessage('element-change', {}, 'r1')).not.toThrow()
+  })
+
+  it('broadcastMessage is a no-op after closeBroadcastChannel', () => {
+    initBroadcastChannel('tab-A')
+    closeBroadcastChannel()
+
+    expect(() => broadcastMessage('element-change', { operation: 'delete' }, 'r1')).not.toThrow()
+  })
+
+  it('re-initializing the channel clears previous subscriptions', async () => {
+    initBroadcastChannel('tab-A')
+    const staleHandler = vi.fn()
+    subscribeBroadcast('element-change', staleHandler)
+
+    initBroadcastChannel('tab-B')
+
+    const raw = new BroadcastChannel('forgeroom:sync')
+    raw.postMessage({
+      type: 'element-change',
+      tabId: 'tab-C',
+      timestamp: '2026-01-01T00:00:00.000Z',
+      payload: { operation: 'update', elementId: 'e-9' },
+    })
+
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(staleHandler).not.toHaveBeenCalled()
+    expect(getLocalTabId()).toBe('tab-B')
+    raw.close()
   })
 })
