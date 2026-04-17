@@ -1,0 +1,11 @@
+# ForgeRoom — Frontend-only Docker Compose
+# No backend services. Single frontend container served via nginx.
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    restart: unless-stopped
