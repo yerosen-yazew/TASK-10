@@ -5,12 +5,15 @@ import { setActivePinia, createPinia } from 'pinia'
 import { ActivityEventType, ActivityFilter } from '@/models/activity'
 import type { ActivityEvent } from '@/models/activity'
 
-const listActivityFiltered = vi.fn<any, Promise<ActivityEvent[]>>()
+const { listActivityFiltered, loggerError } = vi.hoisted(() => ({
+  listActivityFiltered: vi.fn<any, Promise<ActivityEvent[]>>(),
+  loggerError: vi.fn(),
+}))
+
 vi.mock('@/engine/activity-engine', () => ({
   listActivityFiltered: (...args: any[]) => listActivityFiltered(...args),
 }))
 
-const loggerError = vi.fn()
 vi.mock('@/utils/logger', () => ({
   logger: { error: loggerError, info: vi.fn(), warn: vi.fn() },
 }))

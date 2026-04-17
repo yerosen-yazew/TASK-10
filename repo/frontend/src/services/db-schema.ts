@@ -3,6 +3,8 @@
 
 import { DB_NAME, DB_VERSION } from '@/models/constants'
 
+let dbPromise: Promise<IDBDatabase> | null = null
+
 /** Object store definitions for the ForgeRoom IndexedDB database. */
 export interface StoreDefinition {
   name: string
@@ -131,7 +133,9 @@ export const STORE_DEFINITIONS: StoreDefinition[] = [
  * Returns a promise that resolves to the database instance.
  */
 export function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  if (dbPromise) return dbPromise
+
+  dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
     request.onupgradeneeded = (event) => {
@@ -151,7 +155,33 @@ export function openDatabase(): Promise<IDBDatabase> {
       }
     }
 
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
+    request.onsuccess = () => {
+      const db = request.result
+      db.onversionchange = () => {
+        db.close()
+        dbPromise = null
+      }
+      resolve(db)
+    }
+    request.onerror = () => {
+      dbPromise = null
+      reject(request.error)
+    }
   })
+
+  return dbPromise
+}
+
+/**
+ * Close the currently open IndexedDB connection, if any.
+ * Primarily used by tests before deleteDatabase().
+ */
+export async function closeDatabaseConnection(): Promise<void> {
+  if (!dbPromise) return
+  try {
+    const db = await dbPromise
+    db.close()
+  } finally {
+    dbPromise = null
+  }
 }

@@ -41,9 +41,13 @@ const threadComments = computed(() => {
   return commentStore.commentsByThread[activeThread.value.threadId] ?? []
 })
 
+const threadCommentCount = computed(() => {
+  if (!activeThread.value) return 0
+  return Math.max(activeThread.value.commentCount, threadComments.value.length)
+})
+
 const atCommentCap = computed(() => {
-  if (!activeThread.value) return false
-  return activeThread.value.commentCount >= MAX_COMMENTS_PER_THREAD
+  return threadCommentCount.value >= MAX_COMMENTS_PER_THREAD
 })
 
 // @mention suggestion handling
@@ -177,7 +181,7 @@ onMounted(async () => {
         <!-- Cap indicator -->
         <div v-if="activeThread" class="comment-drawer__cap">
           <LimitIndicator
-            :current="activeThread.commentCount"
+            :current="threadCommentCount"
             :max="MAX_COMMENTS_PER_THREAD"
             label="comments"
           />

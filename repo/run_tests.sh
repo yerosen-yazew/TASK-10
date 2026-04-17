@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# ForgeRoom — Test runner (Docker-first)
-# Runs the frontend Vitest suite inside a clean node:20-alpine container.
+# ForgeRoom — Test runner (Docker Compose only)
+# Runs the frontend Vitest suite through docker compose using the
+# `frontend-tests` service.
 # There is no backend — ForgeRoom is a pure frontend SPA, so only frontend
 # unit tests are executed.
 #
@@ -11,7 +12,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRONTEND_DIR="$SCRIPT_DIR/frontend"
 
 MODE="test"
 if [[ "${1:-}" == "--coverage" ]]; then
@@ -19,12 +19,9 @@ if [[ "${1:-}" == "--coverage" ]]; then
 fi
 
 echo "=== ForgeRoom Test Runner (mode: $MODE) ==="
-echo "Running frontend unit tests in Docker (node:20-alpine)..."
+echo "Running frontend unit tests in Docker Compose service (frontend-tests)..."
 
-docker run --rm \
-  -w /app \
-  -v "$FRONTEND_DIR":/app \
-  node:20-alpine \
-  sh -c "npm install && npm run $MODE"
+cd "$SCRIPT_DIR"
+TEST_MODE="$MODE" docker compose --profile test run --rm frontend-tests
 
 echo "=== Tests complete ==="

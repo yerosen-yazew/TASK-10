@@ -41,7 +41,7 @@ describe('presence-store', () => {
     presenceEngine.setPresence(makePresence({ memberId: 'm-new' }))
     const before = store.roster.length
     store.attach('r1')
-    expect(store.roster.length).toBe(before + 1 > 0 ? before + 1 : before)
+    expect(store.roster.length).toBe(before)
   })
 
   it('detach clears roster and roomId', () => {

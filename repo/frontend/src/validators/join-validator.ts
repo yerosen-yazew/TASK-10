@@ -12,8 +12,8 @@ export interface JoinPayload {
 /** Maximum allowed length for a join display name. */
 const MAX_DISPLAY_NAME_LENGTH = 60
 
-/** Expected format for a pairing code: XXXX-XXXX (uppercase alphanumeric, no ambiguous chars). */
-const PAIRING_CODE_PATTERN = /^[A-Z2-9]{4}-[A-Z2-9]{4}$/
+/** Expected format for a pairing code: XXXX-XXXX (uppercase safe charset, no I, O, 0, 1). */
+const PAIRING_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/
 
 /**
  * Validate a room pairing code.

@@ -2,11 +2,13 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { activityRepository } from '@/services/activity-repository'
+import { closeDatabaseConnection } from '@/services/db-schema'
 import { DB_NAME } from '@/models/constants'
 import { ActivityEventType, ActivityFilter } from '@/models/activity'
 import type { ActivityEvent } from '@/models/activity'
 
 async function resetDb() {
+  await closeDatabaseConnection()
   await new Promise<void>((resolve) => {
     const req = indexedDB.deleteDatabase(DB_NAME)
     req.onsuccess = () => resolve()

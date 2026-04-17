@@ -56,6 +56,24 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   return new Blob([bytes], { type: mimeType })
 }
 
+async function readBlobText(blob: Blob): Promise<string> {
+  const maybeText = (blob as { text?: () => Promise<string> }).text
+  if (typeof maybeText === 'function') {
+    return maybeText.call(blob)
+  }
+
+  if (typeof FileReader !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result ?? ''))
+      reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'))
+      reader.readAsText(blob)
+    })
+  }
+
+  throw new Error('Unable to read file text in this environment.')
+}
+
 export const useImportExportStore = defineStore('import-export', () => {
   const isExporting = ref(false)
   const isImporting = ref(false)
@@ -202,7 +220,7 @@ export const useImportExportStore = defineStore('import-export', () => {
 
       importProgress.value = 20
 
-      const text = await file.text()
+      const text = await readBlobText(file)
       importProgress.value = 50
 
       let parsed: unknown
@@ -301,7 +319,7 @@ export const useImportExportStore = defineStore('import-export', () => {
   /** Parse and return a BackupManifest from a File without persisting. */
   async function parseManifest(file: File): Promise<BackupManifest | null> {
     try {
-      const text = await file.text()
+      const text = await readBlobText(file)
       return deserializeBackup(text)
     } catch {
       return null

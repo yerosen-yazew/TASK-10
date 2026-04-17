@@ -123,6 +123,7 @@ describe('RoomJoinPage', () => {
   it('shows validation error when display name is empty', async () => {
     const wrapper = await mountPage()
     await wrapper.find('#join-code').setValue('AAAA-BBBB')
+    await wrapper.find('#join-name').setValue('')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
     expect(wrapper.text()).toContain('Display name is required.')

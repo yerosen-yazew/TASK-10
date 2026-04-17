@@ -11,8 +11,8 @@ vi.mock('@/services/local-storage-keys', () => ({
     LAST_TOOL: 'lastTool',
     RECENT_ROOMS: 'recentRooms',
   },
-  lsGet: vi.fn((key: string) => lsStorage[key] ?? null),
-  lsSet: vi.fn((key: string, value: string) => { lsStorage[key] = value }),
+  lsGetString: vi.fn((key: string) => lsStorage[key] ?? null),
+  lsSetString: vi.fn((key: string, value: string) => { lsStorage[key] = value }),
   lsGetJSON: vi.fn((key: string) => {
     const raw = lsStorage[key]
     return raw ? JSON.parse(raw) : null
@@ -44,20 +44,20 @@ describe('preferences-store', () => {
 
   it('setTheme persists to localStorage', async () => {
     const { usePreferencesStore } = await import('@/stores/preferences-store')
-    const { lsSet } = await import('@/services/local-storage-keys')
+    const { lsSetString } = await import('@/services/local-storage-keys')
     const store = usePreferencesStore()
     store.setTheme('dark')
     expect(store.theme).toBe('dark')
-    expect(lsSet).toHaveBeenCalledWith('theme', 'dark')
+    expect(lsSetString).toHaveBeenCalledWith('theme', 'dark')
   })
 
   it('setLastTool persists to localStorage', async () => {
     const { usePreferencesStore } = await import('@/stores/preferences-store')
-    const { lsSet } = await import('@/services/local-storage-keys')
+    const { lsSetString } = await import('@/services/local-storage-keys')
     const store = usePreferencesStore()
     store.setLastTool('sticky')
     expect(store.lastTool).toBe('sticky')
-    expect(lsSet).toHaveBeenCalledWith('lastTool', 'sticky')
+    expect(lsSetString).toHaveBeenCalledWith('lastTool', 'sticky')
   })
 
   it('has default lastTool "select" when nothing in localStorage', async () => {

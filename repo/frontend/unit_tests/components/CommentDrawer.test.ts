@@ -49,6 +49,7 @@ vi.mock('@/stores/comment-store', () => ({
     isLoading: false,
     lastError: null,
     loadThreads: vi.fn(async () => {}),
+    loadComments: vi.fn(async () => {}),
     createThread: mockCreateThread,
     appendComment: mockAppendComment,
     resolveMentions: mockResolveMentions,
@@ -133,11 +134,12 @@ describe('CommentDrawer', () => {
       commentId: `cmt-${i}`,
     }))
     vi.mocked(useCommentStore).mockReturnValueOnce({
-      threads: [mockThread],
+      threads: [{ ...mockThread, commentCount: MAX_COMMENTS_PER_THREAD }],
       commentsByThread: { 'thread-1': atCap },
       isLoading: false,
       lastError: null,
       loadThreads: vi.fn(async () => {}),
+      loadComments: vi.fn(async () => {}),
       createThread: mockCreateThread,
       appendComment: mockAppendComment,
       resolveMentions: mockResolveMentions,

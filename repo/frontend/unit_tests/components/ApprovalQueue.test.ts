@@ -40,7 +40,20 @@ vi.mock('@/stores/room-store', () => ({
       roomId: 'room-1',
       settings: { requireApproval: true, enableSecondReviewer: true },
     },
-    members: [pendingMember],
+    members: [
+      {
+        memberId: 'host-1',
+        roomId: 'room-1',
+        displayName: 'Host',
+        avatarColor: '#ffffff',
+        role: RoomRole.Host,
+        state: MembershipState.Active,
+        joinedAt: '2026-01-01T00:00:00.000Z',
+        stateChangedAt: '2026-01-01T00:00:00.000Z',
+        approvals: [],
+      },
+      pendingMember,
+    ],
     activeMembers: [],
     pendingMembers: [pendingMember],
     approveJoin: mockApproveJoin,
@@ -58,7 +71,7 @@ vi.mock('@/stores/session-store', () => ({
 vi.mock('@/stores/ui-store', () => ({
   useUiStore: () => ({
     confirm: mockConfirm,
-    toast: { success: vi.fn(), error: vi.fn() },
+    toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
   }),
 }))
 
@@ -70,10 +83,7 @@ async function mountQueue(props = {}) {
   const { default: ApprovalQueue } = await import('@/components/workspace/ApprovalQueue.vue')
   return mount(ApprovalQueue, {
     props: {
-      roomId: 'room-1',
-      isHost: true,
-      activeProfileId: 'host-1',
-      activeProfileRole: RoomRole.Host,
+      pending: [pendingMember],
       activeCount: 1,
       ...props,
     },
@@ -127,13 +137,26 @@ describe('ApprovalQueue', () => {
     const { useRoomStore } = await import('@/stores/room-store')
     vi.mocked(useRoomStore).mockReturnValueOnce({
       activeRoom: { roomId: 'room-1', settings: { requireApproval: true, enableSecondReviewer: true } },
-      members: [secondApprovalMember],
+      members: [
+        {
+          memberId: 'host-1',
+          roomId: 'room-1',
+          displayName: 'Host',
+          avatarColor: '#ffffff',
+          role: RoomRole.Host,
+          state: MembershipState.Active,
+          joinedAt: '2026-01-01T00:00:00.000Z',
+          stateChangedAt: '2026-01-01T00:00:00.000Z',
+          approvals: [],
+        },
+        secondApprovalMember,
+      ],
       activeMembers: [],
       pendingMembers: [secondApprovalMember],
       approveJoin: mockApproveJoin,
       denyJoin: mockDenyJoin,
     } as any)
-    const wrapper = await mountQueue()
+    const wrapper = await mountQueue({ pending: [secondApprovalMember] })
     expect(wrapper.text()).toMatch(/second|2nd|dual/i)
   })
 

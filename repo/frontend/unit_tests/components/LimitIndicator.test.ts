@@ -34,21 +34,21 @@ describe('LimitIndicator', () => {
     const wrapper = mount(LimitIndicator, {
       props: { current: 90, max: 100, label: 'items' },
     })
-    expect(wrapper.find('.limit-indicator__bar-fill--warning').exists()).toBe(true)
+    expect(wrapper.find('.limit-indicator--warning').exists()).toBe(true)
   })
 
   it('applies warning class between 90% and 100%', () => {
     const wrapper = mount(LimitIndicator, {
       props: { current: 95, max: 100, label: 'items' },
     })
-    expect(wrapper.find('.limit-indicator__bar-fill--warning').exists()).toBe(true)
+    expect(wrapper.find('.limit-indicator--warning').exists()).toBe(true)
   })
 
   it('applies full class at 100%', () => {
     const wrapper = mount(LimitIndicator, {
       props: { current: 100, max: 100, label: 'items' },
     })
-    expect(wrapper.find('.limit-indicator__bar-fill--full').exists()).toBe(true)
+    expect(wrapper.find('.limit-indicator--full').exists()).toBe(true)
   })
 
   it('bar fill width is proportional to current/max', () => {

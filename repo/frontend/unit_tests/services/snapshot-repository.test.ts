@@ -2,10 +2,12 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { snapshotRepository } from '@/services/snapshot-repository'
+import { closeDatabaseConnection } from '@/services/db-schema'
 import { DB_NAME, MAX_SNAPSHOTS_RETAINED } from '@/models/constants'
 import type { Snapshot } from '@/models/snapshot'
 
 async function resetDb() {
+  await closeDatabaseConnection()
   await new Promise<void>((resolve) => {
     const req = indexedDB.deleteDatabase(DB_NAME)
     req.onsuccess = () => resolve()

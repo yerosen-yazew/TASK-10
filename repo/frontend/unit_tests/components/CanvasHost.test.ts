@@ -126,7 +126,15 @@ describe('CanvasHost', () => {
     const { useElementStore } = await import('@/stores/element-store')
     const maxElements = Array.from({ length: MAX_ELEMENTS_PER_ROOM }, (_, i) => ({
       elementId: `el-${i}`,
+      roomId: 'room-1',
       type: ElementType.StickyNote,
+      position: { x: 10, y: 10 },
+      dimensions: { width: 100, height: 60 },
+      text: `sticky-${i}`,
+      backgroundColor: '#fef9c3',
+      textColor: '#1e293b',
+      fontSize: 14,
+      zIndex: i,
     }))
     vi.mocked(useElementStore).mockReturnValueOnce({
       elements: maxElements,

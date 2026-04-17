@@ -7,7 +7,16 @@ import type { MemberRecord } from '@/models/room'
 import type { CommentThread, Comment } from '@/models/comment'
 import { validResult } from '@/models/validation'
 
-const listByRoomMock = vi.fn<any, Promise<CommentThread[]>>()
+const { listByRoomMock, engineMocks, loggerError } = vi.hoisted(() => ({
+  listByRoomMock: vi.fn<any, Promise<CommentThread[]>>(),
+  engineMocks: {
+    listComments: vi.fn<any, Promise<Comment[]>>(),
+    createThread: vi.fn(),
+    appendComment: vi.fn(),
+    resolveMentions: vi.fn(),
+  },
+  loggerError: vi.fn(),
+}))
 
 vi.mock('@/services/comment-thread-repository', () => ({
   commentThreadRepository: {
@@ -15,16 +24,8 @@ vi.mock('@/services/comment-thread-repository', () => ({
   },
 }))
 
-const engineMocks = {
-  listComments: vi.fn<any, Promise<Comment[]>>(),
-  createThread: vi.fn(),
-  appendComment: vi.fn(),
-  resolveMentions: vi.fn(),
-}
-
 vi.mock('@/engine/comment-engine', () => engineMocks)
 
-const loggerError = vi.fn()
 vi.mock('@/utils/logger', () => ({
   logger: { error: loggerError, info: vi.fn(), warn: vi.fn() },
 }))

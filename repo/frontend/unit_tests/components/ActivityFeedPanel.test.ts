@@ -34,8 +34,10 @@ const mockRefresh = vi.fn(async () => {})
 vi.mock('@/stores/activity-store', () => ({
   useActivityStore: vi.fn(() => ({
     events: [],
+    filteredEvents: [],
     filter: 'all',
     isLoading: false,
+    lastError: null,
     setFilter: mockSetFilter,
     refresh: mockRefresh,
   })),
@@ -70,15 +72,27 @@ describe('ActivityFeedPanel', () => {
         {
           eventId: 'ev-1',
           roomId: 'room-1',
-          type: 'element-created',
+          type: 'element_created',
           actorId: 'member-1',
-          actorName: 'Alice',
+          actorDisplayName: 'Alice',
           summary: 'Alice created a sticky note',
-          occurredAt: '2026-01-01T00:00:00.000Z',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      filteredEvents: [
+        {
+          eventId: 'ev-1',
+          roomId: 'room-1',
+          type: 'element_created',
+          actorId: 'member-1',
+          actorDisplayName: 'Alice',
+          summary: 'Alice created a sticky note',
+          createdAt: '2026-01-01T00:00:00.000Z',
         },
       ],
       filter: 'all',
       isLoading: false,
+      lastError: null,
       setFilter: mockSetFilter,
       refresh: mockRefresh,
     } as any)

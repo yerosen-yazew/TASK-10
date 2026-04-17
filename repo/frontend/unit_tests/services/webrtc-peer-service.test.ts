@@ -7,6 +7,7 @@ class MockDataChannel {
   readyState = 'open'
   onmessage: ((e: MessageEvent) => void) | null = null
   send = vi.fn()
+  close = vi.fn()
 }
 
 class MockRTCPeerConnection {
@@ -54,7 +55,7 @@ vi.mock('@/models/constants', () => ({
 
 vi.mock('@/serializers/pairing-codec', () => ({
   encodePairingPayload: vi.fn(async (payload: unknown) => JSON.stringify(payload)),
-  decodePairingPayload: vi.fn(async (encoded: string) => JSON.parse(encoded)),
+  decodePairingPayload: vi.fn((encoded: string) => JSON.parse(encoded)),
   verifyPairingChecksum: vi.fn(async () => true),
 }))
 

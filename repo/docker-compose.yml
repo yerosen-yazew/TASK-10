@@ -1,5 +1,7 @@
 # ForgeRoom — Frontend-only Docker Compose
-# No backend services. Single frontend container served via nginx.
+# No backend services. Includes:
+# - frontend: production-like nginx-served SPA
+# - frontend-tests: on-demand Vitest runner (profile: test)
 
 services:
   frontend:
@@ -9,3 +11,12 @@ services:
     ports:
       - "5173:80"
     restart: unless-stopped
+
+  frontend-tests:
+    image: node:20-alpine
+    profiles: ["test"]
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm ci && npm run ${TEST_MODE:-test}"
