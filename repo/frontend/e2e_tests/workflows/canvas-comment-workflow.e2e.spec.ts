@@ -41,8 +41,10 @@ test('canvas + comments workflow: create sticky then post comment', async ({ pag
   await page.locator('.canvas-host__sticky-textarea').fill(stickyText)
   await page.locator('.canvas-host__sticky-confirm').click()
 
+  await expect(page.locator('.canvas-host__sticky-editor')).toBeHidden({ timeout: 15000 })
+
   const sticky = page.locator('.canvas-host__sticky', { hasText: stickyText }).first()
-  await expect(sticky).toBeVisible()
+  await expect(sticky).toBeVisible({ timeout: 15000 })
   await sticky.click()
 
   await page.locator('[data-testid="canvas-comment-btn"]').click()

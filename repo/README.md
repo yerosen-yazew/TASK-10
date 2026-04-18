@@ -13,6 +13,14 @@ ForgeRoom is a frontend-only web SPA.
 
 ForgeRoom is production-ready for a frontend-only deployment path.
 
+Production scope qualifiers:
+- Browser scope: validated on Chromium-based browsers and Firefox in the Dockerized test path; validate Safari and older browser versions before release.
+- Scale envelope: designed for small-team collaboration with enforced caps (20 active members, 2,000 elements, 50 images, 5,000 retained chat messages, 48 snapshots).
+- Availability boundary: local/LAN-first operation only (no backend, no cloud sync, no server-side failover).
+- Operational expectation: treat this as a frontend-only production path with environment-specific validation using the sections below.
+
+See **Browser Requirements**, **Limitations**, and **Testing (Docker-Only)** for concrete boundary details.
+
 - Startup is Docker-first and deterministic.
 - Tests run in Docker with enforced coverage thresholds.
 - R1-R20 requirement-to-test traceability is documented in [`docs/requirements-to-test.md`](../docs/requirements-to-test.md).

@@ -101,10 +101,12 @@ async function submitComment(): Promise<void> {
       const result = await commentStore.createThread({
         roomId: props.roomId,
         elementId: props.elementId,
-        authorId: props.actor.memberId,
-        authorDisplayName: props.actor.displayName,
-        text,
-        mentions: [],
+        starter: {
+          authorId: props.actor.memberId,
+          authorDisplayName: props.actor.displayName,
+          text,
+          mentions: [],
+        },
       })
       if (!result.validation.valid) {
         uiStore.toast.error(result.validation.errors[0]?.message ?? 'Thread creation failed.')

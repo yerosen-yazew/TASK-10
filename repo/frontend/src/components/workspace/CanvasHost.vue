@@ -140,21 +140,32 @@ async function confirmSticky() {
     showStickyEditor.value = false
     return
   }
-  const result = await elementStore.createSticky({
-    roomId: props.roomId,
-    position: stickyEditorPos.value,
-    dimensions: { width: 160, height: 120 },
-    text: stickyText.value.trim(),
-    backgroundColor: stickyColor.value,
-    textColor: '#1e293b',
-    fontSize: 14,
-    actor: props.actor,
-  })
-  showStickyEditor.value = false
-  if (!result.validation.valid) {
-    uiStore.toast.error(result.validation.errors[0]?.message ?? 'Failed to create sticky note.')
-  } else {
+
+  try {
+    const position = {
+      x: stickyEditorPos.value.x,
+      y: stickyEditorPos.value.y,
+    }
+
+    const result = await elementStore.createSticky({
+      roomId: props.roomId,
+      position,
+      dimensions: { width: 160, height: 120 },
+      text: stickyText.value.trim(),
+      backgroundColor: stickyColor.value,
+      textColor: '#1e293b',
+      fontSize: 14,
+      actor: props.actor,
+    })
+    if (!result.validation.valid) {
+      uiStore.toast.error(result.validation.errors[0]?.message ?? 'Failed to create sticky note.')
+      return
+    }
     emit('tool-used')
+  } catch {
+    uiStore.toast.error('Failed to create sticky note.')
+  } finally {
+    showStickyEditor.value = false
   }
 }
 

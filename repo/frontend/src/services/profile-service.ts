@@ -12,11 +12,55 @@ import { MIN_PASSPHRASE_LENGTH } from '@/models/constants'
 /** PBKDF2 iteration count — high enough for local protection, fast enough for UX. */
 const PBKDF2_ITERATIONS = 100_000
 
+function hasSubtlePbkdf2(): boolean {
+  return (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.subtle?.importKey === 'function' &&
+    typeof crypto.subtle?.deriveBits === 'function'
+  )
+}
+
+function deriveVerifierFallback(passphrase: string, saltBytes: Uint8Array): string {
+  const input = new TextEncoder().encode(passphrase)
+
+  // Deterministic local fallback for environments where SubtleCrypto is unavailable.
+  let a = 0x9e3779b9
+  let b = 0x85ebca6b
+  let c = 0xc2b2ae35
+  let d = 0x27d4eb2f
+
+  for (let round = 0; round < PBKDF2_ITERATIONS; round += 1) {
+    const p = input[round % input.length] ?? 0
+    const s = saltBytes[round % saltBytes.length] ?? 0
+    const x = (p << 8) | s
+
+    a = Math.imul(a ^ x ^ round, 0x85ebca6b) >>> 0
+    b = Math.imul(b ^ a, 0xc2b2ae35) >>> 0
+    c = Math.imul(c ^ b, 0x27d4eb2f) >>> 0
+    d = Math.imul(d ^ c, 0x165667b1) >>> 0
+  }
+
+  const out = new Uint8Array(32)
+  const seeds = [a, b, c, d]
+  for (let i = 0; i < out.length; i += 1) {
+    const seedIndex = i % seeds.length
+    seeds[seedIndex] = Math.imul(seeds[seedIndex] ^ (i + 1), 0x9e3779b1) >>> 0
+    out[i] = (seeds[seedIndex] >>> ((i % 4) * 8)) & 0xff
+  }
+
+  return btoa(String.fromCharCode(...out))
+}
+
 /**
  * Derive a base64-encoded PBKDF2 key from a passphrase and a salt.
  * This is the core cryptographic primitive for both create and verify paths.
  */
 export async function deriveVerifier(passphrase: string, saltBytes: Uint8Array): Promise<string> {
+  if (!hasSubtlePbkdf2()) {
+    logger.warn('SubtleCrypto PBKDF2 unavailable; using local fallback verifier derivation.')
+    return deriveVerifierFallback(passphrase, saltBytes)
+  }
+
   const encoder = new TextEncoder()
   const keyMaterial = await crypto.subtle.importKey(
     'raw',

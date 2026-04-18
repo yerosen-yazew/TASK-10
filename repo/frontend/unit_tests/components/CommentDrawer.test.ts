@@ -251,9 +251,11 @@ describe('CommentDrawer', () => {
       expect.objectContaining({
         roomId: 'room-1',
         elementId: 'el-1',
-        authorId: TEST_ACTOR.memberId,
-        authorDisplayName: TEST_ACTOR.displayName,
-        text: 'First thread comment',
+        starter: expect.objectContaining({
+          authorId: TEST_ACTOR.memberId,
+          authorDisplayName: TEST_ACTOR.displayName,
+          text: 'First thread comment',
+        }),
       })
     )
     expect(loadComments).toHaveBeenCalledWith('thread-new')
